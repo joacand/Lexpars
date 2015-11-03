@@ -4,12 +4,15 @@
 #include <string>
 #include "lexer.h"
 #include <sstream>
+#include <vector>
 
 using namespace std;
 
 class ExprASTNode;
 
 int tabs = 1;
+
+
 
 /* Statements:
 	Assignment (Ident = Expr;)
@@ -99,7 +102,9 @@ public:
 		if (ls != "-")
 			s << std::string(t, ' ') << ls ;
 		if (rs != "-")
-			s << std::string(t, ' ') << rs << endl;
+			s << std::string(t, ' ') << rs;
+
+		tabs = t;
 		return s.str();
 	}
 };
@@ -116,6 +121,40 @@ public:
 
 	virtual void print() {
 
+	}
+};
+
+typedef vector<StmASTNode*> stm_vec;
+
+StmASTNode* parseStmt();
+StmASTNode* parseDelimStmt();
+StmASTNode* parseIdentStmt();
+StmASTNode* parseNumStmt();
+ExprASTNode* parsePrimaryExpr();
+ExprASTNode* parseIdentExpr();
+ExprASTNode* parseNumExpr();
+ExprASTNode* parseBinarySymbol(ExprASTNode* lft, string op);
+ExprASTNode* parseUnarySymbol(ExprASTNode* lft, string op);
+
+Token* tok;
+
+class StmBlock : public StmASTNode {
+public:
+	stm_vec stms;
+
+	void addStm(StmASTNode* stm) {
+		stms.push_back(stm);
+	}
+
+	void print() {
+		int t = tabs;
+
+		cout << string(t, ' ') << "[BlockStm]" << endl;
+		tabs++;
+		for (auto stm : stms) {
+			stm->print();
+		}
+		tabs = t;
 	}
 };
 
@@ -141,7 +180,7 @@ public:
 		if (ls != "-") 
 			cout << string(t, ' ') << ls;
 		if (rs != "-")
-			cout << string(t, ' ') << rs << endl;
+			cout << string(t, ' ') << rs;
 	}
 };
 
@@ -165,73 +204,48 @@ public:
 
 
 
+class Program {
+public:
+	Program() {
 
-StmASTNode* parseStmt();
-StmASTNode* parseIdentStmt();
-ExprASTNode* parsePrimaryExpr();
-ExprASTNode* parseIdentExpr();
-ExprASTNode* parseNumExpr();
-ExprASTNode* parseBinarySymbol(ExprASTNode* lft, string op);
-ExprASTNode* parseUnarySymbol(ExprASTNode* lft, string op);
+	}
 
-Token* tok;
+	~Program() {
+	}
+
+	stm_vec run() {
+		stm_vec stms;
+		bool error = false;
+		while (!error && (tok = getToken())) {
+			stms.push_back(parseStmt());
+			error = true; // Remove later
+		}
+
+		return stms;
+	}
+};
+
+
+
 
 void parse() {
-	bool error = false;
-	
-	while (!error && (tok = getToken())) {
+	//bool error = false;
+	Program* prgm = new Program();
+
+	//while (!error && (tok = getToken())) {
 		//tok = getToken();
-		StmASTNode* ast = parseStmt();
-		ast->print();
+	while (true) {
+		stm_vec stms = prgm->run();
+		//StmASTNode* ast = parseStmt();
+		for (auto stm : stms) {
+			stm->print();
+		}
 		cout << endl << "Successful" << endl;
 		tabs = 1;
-	}
-		return;
-		/*
-		if (tok->kind == Token::tok_identifier) {
-			bool eq = false;
-			Token* e1 = tok;
-			label:
-			tok = getToken();
-			if (tok->kind == Token::tok_symbol) {
-				if (tok->value == "=") {
-					if (eq) {
-						error = true;
-						break;
-					}
-					cout << e1->value << " " << tok->value << " ";
-					e1 = getToken();
-					eq = true;
-					goto label;
-				} else {
-					cout << e1->value << " " << tok->value << " ";
-					Token* e2 = getToken();
-					if (e2->kind != Token::tok_eos) {
-						e1 = e2;
-						eq = true;
-						goto label;
-					}
 
-					  cout << e2->value << " " << endl;
-				}
-			}
-			else if (tok->kind == Token::tok_eos) {
-				cout << e1->value << " " << tok->value << endl;
-			} else {
-				error = true;
-			}
-		}
-		else {
-			error = true;
-		}
 	}
-	
-	}
-	if (error)
-		cout << "Error in parser" << endl;
-	else
-		cout << "End was reached" << endl;
-		*/
+//}
+	return;
 }
 
 void parseExpr() {
@@ -247,6 +261,51 @@ StmASTNode* parseStmt() {
 	if (tok->kind == Token::tok_identifier) {
 		return parseIdentStmt();
 	}
+	if (tok->kind == Token::tok_number) {
+		return parseNumStmt();
+	}
+	if (tok->kind == Token::tok_delim) {
+		if (tok->value == "}") {
+			return NULL;
+		}
+		return parseDelimStmt();
+	}
+}
+
+StmASTNode* parseDelimStmt() {
+	//StmAssignment* stm = new StmAssignment();
+	//return stm;
+	if (tok->value == "{") {
+		StmBlock* bstm = new StmBlock();
+		tok = getToken();
+		while (tok->value != "}") {
+			StmASTNode* s = parseStmt();
+			if (s != NULL) {
+				bstm->addStm(s);
+			}
+
+			tok = getToken();
+		}
+
+		return bstm;
+	}
+
+	cout << "ERROR IN parseDelimStmt, No patterns match";
+
+	if (tok->value == "(") {
+
+	}
+}
+
+StmASTNode* parseNumStmt() {
+	string identStr = tok->value;
+	int k = tok->kind;
+
+	StmAssignment* stm = new StmAssignment();
+	stm->lhs = parsePrimaryExpr();
+	return stm;
+
+	cout << "ERROR IN parseNumStmt - No patterns match";
 }
 
 StmASTNode* parseIdentStmt() {
