@@ -19,15 +19,15 @@ int tabs = 1;
 	SExpression (Extr;)
 	SEmpty.     Stmt ::= ";" ;
 	SAss.       Stmt ::= Ident "=" Expr  ";" ;
-
-	TODO:
 	SBlock.     Block ::= "{" [Stmt] "}" ;
 	SBStmt.     Stmt ::= Block ;
+	SIncr.      Stmt ::= Ident "++"  ";" ;
+	SDecr.      Stmt ::= Ident "--"  ";" ;
+
+	TODO:
 	SDecl.      Stmt ::= Type [Item] ";" ;
 	SNoInit.    Item ::= Ident ;
 	SInit.      Item ::= Ident "=" Expr ;
-	SIncr.      Stmt ::= Ident "++"  ";" ;
-	SDecr.      Stmt ::= Ident "--"  ";" ;
 	SRet.       Stmt ::= "return" Expr ";" ;
 	SVRet.      Stmt ::= "return" ";" ;
 	SCond.      Stmt ::= "if" "(" Expr ")" Stmt  ;
@@ -128,6 +128,7 @@ typedef vector<StmASTNode*> stm_vec;
 
 StmASTNode* parseStmt();
 StmASTNode* parseDelimStmt();
+StmASTNode* parseCommand();
 StmASTNode* parseIdentStmt();
 StmASTNode* parseNumStmt();
 ExprASTNode* parsePrimaryExpr();
@@ -181,6 +182,23 @@ public:
 			cout << string(t, ' ') << ls;
 		if (rs != "-")
 			cout << string(t, ' ') << rs;
+	}
+};
+
+class StmReturn : public StmASTNode {
+public:
+	ExprASTNode* retExpr;
+
+	void print() {
+		int t = tabs;
+		string e = "-";
+		if (retExpr != NULL) {
+			e = retExpr->print();
+		}
+		cout << string(t, ' ') << "[StmReturn]" << endl;
+		if (e != "-") {
+			cout << string(t, ' ') << e;
+		}
 	}
 };
 
@@ -248,10 +266,6 @@ void parse() {
 	return;
 }
 
-void parseExpr() {
-
-}
-
 StmASTNode* parseStmt() {
 	if (tok->kind == Token::tok_eos) {
 		// Empty statement
@@ -269,6 +283,26 @@ StmASTNode* parseStmt() {
 			return NULL;
 		}
 		return parseDelimStmt();
+	}
+	if (tok->kind == Token::tok_command) {
+		return parseCommand();
+	}
+}
+
+StmASTNode* parseCommand() {
+	string cmd = tok->value;
+	int k = tok->kind;
+	tok = getToken();
+
+	if (cmd == "return") {
+		StmReturn* stm = new StmReturn();
+		if (tok->kind == Token::tok_eos) {
+			return stm;
+		} else {
+			ExprASTNode* e = parsePrimaryExpr();
+			stm->retExpr = e;
+			return stm;
+		}
 	}
 }
 

@@ -2,32 +2,9 @@
 #include "stdafx.h"
 #include <iostream>
 #include <string>
+#include "lexer.h"
 
 using namespace std;
-
-class Token {
-public:
-	enum kinds {
-		// End of file and error
-		tok_eof = 1,
-		tok_error = -1,
-
-		// Operator symbols
-		tok_binsymbol = 2,
-		tok_unisymbol = 3,
-
-		// Misc
-		tok_delim = 5,
-		tok_identifier = 6,
-		tok_number = 7,
-		tok_comment = 8,
-		tok_eos = 9
-	};
-
-	int kind;
-	string value;
-	string name;
-};
 
 int lastChar = ' ';
 
@@ -63,6 +40,34 @@ Token* getToken() {
 		}
 		//std::cout << alpha; // Debug code
 		// Check if alpha is equal to "int", etc
+
+		if (alpha == "return") {
+			tok->kind = Token::tok_command;
+			tok->value = alpha;
+			tok->name = "Return";
+			return tok;
+		}
+
+		if (alpha == "while") {
+			tok->kind = Token::tok_command;
+			tok->value = alpha;
+			tok->name = "While";
+			return tok;
+		}
+
+		if (alpha == "if") {
+			tok->kind = Token::tok_command;
+			tok->value = alpha;
+			tok->name = "If";
+			return tok;
+		}
+
+		if (alpha == "else") {
+			tok->kind = Token::tok_command;
+			tok->value = alpha;
+			tok->name = "Else";
+			return tok;
+		}
 
 		tok->kind = Token::tok_identifier;
 		tok->value = alpha;

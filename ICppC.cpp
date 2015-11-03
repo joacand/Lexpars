@@ -13,9 +13,9 @@ int main() {
 
 	parse();
 
+	
+	//Token* tok;
 	/*
-	Token* tok;
-
 	while (tok = getToken()) {
 		if (tok->kind == -1) {
 			cout << "LEXER ERROR - KIND RETURNED -1 - EXITING" << endl << endl;
