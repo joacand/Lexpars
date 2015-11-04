@@ -1,5 +1,3 @@
-// ICppC.cpp : Defines the entry point for the console application.
-//
 
 #include "stdafx.h"
 #include <iostream>
@@ -13,9 +11,9 @@ int main() {
 
 	parse();
 
-	
-	//Token* tok;
 	/*
+	Token* tok;
+	
 	while (tok = getToken()) {
 		if (tok->kind == -1) {
 			cout << "LEXER ERROR - KIND RETURNED -1 - EXITING" << endl << endl;

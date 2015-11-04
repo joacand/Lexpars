@@ -5,19 +5,22 @@ class Token {
 public:
 	enum kinds {
 		// End of file and error
-		tok_eof = 1,
 		tok_error = -1,
+		tok_eof = 1,
+
+		// Commands (return, while, for, if, else)
+		tok_command,
 
 		// Operator symbols
-		tok_binsymbol = 2,
-		tok_unisymbol = 3,
+		tok_binsymbol,
+		tok_unisymbol,
 
 		// Misc
-		tok_delim = 5,
-		tok_identifier = 6,
-		tok_number = 7,
-		tok_comment = 8,
-		tok_eos = 9
+		tok_delim,
+		tok_identifier,
+		tok_number,
+		tok_comment,
+		tok_eos
 	};
 	int kind;
 	std::string value;
