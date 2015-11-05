@@ -36,16 +36,15 @@ int tabs = 1;
 	SBStmt.     Stmt ::= Block ;
 	SIncr.      Stmt ::= Ident "++"  ";" ;
 	SDecr.      Stmt ::= Ident "--"  ";" ;
+	SRet.       Stmt ::= "return" Expr ";" ;
+	SVRet.      Stmt ::= "return" ";" ;
+	SWhile.     Stmt ::= "while" "(" Expr ")" Stmt ;
+	SCond.      Stmt ::= "if" "(" Expr ")" Stmt  ;
 
 	TODO:
 	SDecl.      Stmt ::= Type [Item] ";" ;
 	SNoInit.    Item ::= Ident ;
 	SInit.      Item ::= Ident "=" Expr ;
-	SRet.       Stmt ::= "return" Expr ";" ;
-	SVRet.      Stmt ::= "return" ";" ;
-	SCond.      Stmt ::= "if" "(" Expr ")" Stmt  ;
-	SCondElse.  Stmt ::= "if" "(" Expr ")" Stmt "else" Stmt  ;
-	SWhile.     Stmt ::= "while" "(" Expr ")" Stmt ;
 
  Expressions TODO:
 	true
@@ -200,6 +199,71 @@ public:
 	}
 };
 
+class StmWhile : public StmASTNode {
+public:
+	string stmType = "[StmWhile]";
+	ExprASTNode* expr;
+	StmASTNode* stmt;
+
+	StmWhile() {
+	}
+
+	StmWhile(ExprASTNode* e, StmASTNode* s) {
+		expr = e;
+		stmt = s;
+	}
+
+	~StmWhile() {
+		delete expr;
+		delete stmt;
+	}
+
+	void print() {
+		int t = tabs;
+		string es = expr->print();
+		tabs++;
+
+
+		cout << string(t, ' ') << stmType << endl;
+		cout << string(t, ' ') << es;
+		stmt->print();
+		tabs = t;
+	}
+};
+
+class StmIfElseCond : public StmASTNode {
+public:
+	string stmType;
+	ExprASTNode* expr;
+	StmASTNode* stmt;
+	StmASTNode* elseStmt;
+
+	StmIfElseCond(ExprASTNode* e, StmASTNode* s, StmASTNode* es) {
+		expr = e;
+		stmt = s;
+		elseStmt = es;
+		stmType = "[IfElseCond]";
+	}
+
+	~StmIfElseCond() {
+		delete expr;
+		delete stmt;
+	}
+
+	void print() {
+		int t = tabs;
+		string es = expr->print();
+		tabs++;
+
+
+		cout << string(t, ' ') << stmType << endl;
+		cout << string(t, ' ') << es;
+		stmt->print();
+		elseStmt->print();
+		tabs = t;
+	}
+};
+
 class StmExpr : public StmASTNode {
 public:
 	ExprASTNode* expr;
@@ -296,6 +360,48 @@ StmASTNode* parseCommand() {
 			ExprASTNode* e = parsePrimaryExpr();
 			stm->retExpr = e;
 			return stm;
+		}
+	}
+	if (cmd == "while") {
+		if (tok->kind == Token::tok_delim && tok->value == "(") {
+			tok = getToken();
+			ExprASTNode* expr = parsePrimaryExpr();
+
+			if (tok->kind == Token::tok_delim && tok->value == ")") {
+				tok = getToken();
+				StmASTNode* stmt = parseStmt();
+
+				StmWhile* sWhile = new StmWhile(expr, stmt);
+				return sWhile;
+			}
+		}
+
+		// Else something went wrong with while syntax
+		cout << "ERROR IN parseCommand, Wrong syntax after while statement";
+	}
+
+	// If then else, If without else not yet implemented
+	if (cmd == "if") {
+		if (tok->kind == Token::tok_delim && tok->value == "(") {
+			tok = getToken();
+			ExprASTNode* expr = parsePrimaryExpr();
+
+			if (tok->kind == Token::tok_delim && tok->value == ")") {
+				tok = getToken();
+				StmASTNode* stmt = parseStmt();
+				
+				tok = getToken();
+				if (tok->kind == Token::tok_command && tok->value == "else") {
+					tok = getToken();
+					StmASTNode* elseStmt = parseStmt();
+
+					StmIfElseCond* sIfElse = new StmIfElseCond(expr, stmt, elseStmt);
+					return sIfElse;
+				}
+				else {
+					cout << "ERROR IN IfElse, No else detected";
+				}
+			}
 		}
 	}
 
@@ -433,6 +539,8 @@ ExprASTNode* parseIdentExpr() {
 		return parseUnarySymbol(lft, tok->value);
 	}
 
+	return lft;
+
 	cout << "ERROR IN parseIdentExpr, No patterns match" << endl;
 }
 
@@ -456,6 +564,8 @@ ExprASTNode* parseNumExpr() {
 		cout << "ERROR IN parseNumExpr - Unary symbols not yet implemented" << endl;
 		//return parseBinarySymbol(lft, tok->value);
 	}
+
+	return lft;
 
 	cout << "ERROR IN parseNumExpr, No patterns match" << endl;
 }
