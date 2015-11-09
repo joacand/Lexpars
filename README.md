@@ -1,15 +1,16 @@
-# No Tools Compiler
+# Lexpars
 
-No Tools Compiler is a compiler for a small language made without the use of any external tools.
+Lexpars is a lexer and parser for a small language made without the use of any external tools.
 
-Lexical analysis, parsing etc. is all done by hand, using only the standard C++ libraries.
+Lexical analysis and parsing is all done "by hand", using only the standard C++ libraries.
 
-The motivation for the project is mainly educational, to gain more experience using C++ and learn more about how all the different parts of a compiler work.
+The motivation for the project is mainly educational, to gain more experience using C++ and learn more about how the front-end of a compiler works.
 
 ## Features
-So far only a small lexer and parser have been implemented (the front end of the compiler).
+Basic statements and expression have been implemented.
 
 ### Todo
-* Extend the lexer and parser
-* Add type checker
-* Back-end
+* Extend the lexer and parser with more statements and expressions
+
+### Future work
+Future work may include extending the project to a full compiler, with type checking and code generation.
